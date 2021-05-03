@@ -39,7 +39,6 @@ in_img.addEventListener('change', () => {
   if (filename.indexOf('\\') === 0 || filename.indexOf('/') === 0) {
       filename = filename.substring(1);
   }
-  alert(filename);
   img.alt = filename;
 
 });
