@@ -1,15 +1,164 @@
 // script.js
 
 const img = new Image(); // used to load image from <input> and draw to canvas
+const canvas = document.getElementById("user-image");
+const ctx = canvas.getContext('2d');
+
+const reset_button = document.querySelector("[type='reset']");
+const read_button = document.querySelector("[type='button']");
+const submit_button = document.querySelector("[type='submit']");
+
+var in_img = document.getElementById("image-input");
 
 // Fires whenever the img object loads a new image (such as with img.src =)
 img.addEventListener('load', () => {
   // TODO
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, 400, 400);
 
-  // Some helpful tips:
-  // - Fill the whole Canvas with black first to add borders on non-square images, then draw on top
-  // - Clear the form when a new image is selected
-  // - If you draw the image to canvas here, it will update as soon as a new image is selected
+  submit_button.disabled = false;
+  read_button.disabled = true;
+  reset_button.disabled = true;
+
+  var scale = getDimmensions(canvas.width, canvas.height, img.width, img.height);
+  ctx.drawImage(img, scale.startX, scale.startY, scale.width, scale.height);
+});
+
+// changing the image src
+in_img.addEventListener('change', () => {
+
+  const file = in_img.files[0];
+  const objectURL = URL.createObjectURL(file);
+  img.src = objectURL;
+
+  var path = in_img.value;
+  if (path) {
+    var startIndex = (path.indexOf('\\') >= 0 ? path.lastIndexOf('\\') : path.lastIndexOf('/'));
+    var filename = path.substring(startIndex);
+    if (filename.indexOf('\\') === 0 || filename.indexOf('/') === 0) {
+        filename = filename.substring(1);
+    }
+  }
+  img.alt = filename;
+
+});
+
+// when meme needs to be generated
+const form = document.getElementById("generate-meme");
+form.addEventListener('submit', (event) => {
+  
+  var top_text = document.getElementById("text-top").value;
+  var bot_text = document.getElementById("text-bottom").value;
+
+  ctx.textAlign = "center";
+  ctx.font = "30px Arial";
+  ctx.fillStyle = 'white';
+  ctx.strokeStyle = 'black';
+  ctx.fillText(top_text, 200, 50);
+  ctx.fillText(bot_text, 200, 370);
+  ctx.strokeText(top_text, 200, 50);
+  ctx.strokeText(bot_text, 200, 370);
+
+  submit_button.disabled = true;
+  reset_button.disabled = false;
+  read_button.disabled = false;
+
+  event.preventDefault();
+});
+
+// clear form
+reset_button.addEventListener('click', () => {
+
+  submit_button.disabled = false;
+  reset_button.disabled = true;
+  read_button.disabled = true; 
+
+  document.getElementById("text-top").value = "";
+  document.getElementById("text-bottom").value = "";
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  in_img = "";
+   
+});
+
+var dd = document.getElementById("voice-selection");
+dd.disabled = false;
+
+var synth = window.speechSynthesis;
+var voices = [];
+
+// to add all the voices to the dropdown
+function populateVoiceList() {
+
+  voices = synth.getVoices();
+
+  for(var i = 0; i < voices.length ; i++) {
+    var option = document.createElement('option');
+    option.textContent = voices[i].name + ' (' + voices[i].lang + ')';
+
+    if(voices[i].default) {
+      option.textContent += ' -- DEFAULT';
+    }
+
+    option.setAttribute('data-lang', voices[i].lang);
+    option.setAttribute('data-name', voices[i].name);
+    dd.appendChild(option);
+  }
+  dd.remove(dd[0]);
+}
+
+window.onload = populateVoiceList;
+populateVoiceList();
+if (speechSynthesis.onvoiceschanged !== undefined) {
+  speechSynthesis.onvoiceschanged = populateVoiceList;
+}
+
+// reading text
+read_button.addEventListener('click', ()=> {
+  var top_text = document.getElementById("text-top").value;
+  var bot_text = document.getElementById("text-bottom").value;
+
+  var utter_top = new SpeechSynthesisUtterance(top_text);
+  var utter_bot = new SpeechSynthesisUtterance(bot_text);
+  var selectedOption = dd.selectedOptions[0].getAttribute('data-name');
+
+  for(var i = 0; i < voices.length ; i++) {
+    if(voices[i].name === selectedOption) {
+      utter_top.voice = voices[i];
+      utter_bot.voice = voices[i];
+    }
+  }
+
+  synth.cancel();
+  utter_top.volume = (v_bar.value / 100);
+  utter_bot.volume = (v_bar.value / 100);
+  synth.speak(utter_top);
+  synth.speak(utter_bot);
+});
+
+// updating volume
+const v_icon = document.getElementById('volume-group').firstElementChild;
+const v_bar = document.querySelector("[type='range']");
+
+v_bar.addEventListener('input', () => {
+  if (v_bar.value >= 67) {
+    v_icon.src = "icons/volume-level-3.svg";
+    v_icon.alt = "Volume Level 3";
+  }
+  else if (v_bar.value >= 34) {
+    v_icon.src = "icons/volume-level-2.svg";
+    v_icon.alt = "Volume Level 2";
+  }
+  else if (v_bar.value >= 1) {
+    v_icon.src = "icons/volume-level-1.svg";
+    v_icon.alt = "Volume Level 1";
+  }
+  else {
+    v_icon.src = "icons/volume-level-0.svg";
+    v_icon.alt = "Volume Level 0";
+  }
 });
 
 /**
