@@ -34,13 +34,12 @@ in_img.addEventListener('change', () => {
   img.src = objectURL;
 
   var path = in_img.value;
-  if (path) {
-    var startIndex = (path.indexOf('\\') >= 0 ? path.lastIndexOf('\\') : path.lastIndexOf('/'));
-    var filename = path.substring(startIndex);
-    if (filename.indexOf('\\') === 0 || filename.indexOf('/') === 0) {
-        filename = filename.substring(1);
-    }
+  var startIndex = (path.indexOf('\\') >= 0 ? path.lastIndexOf('\\') : path.lastIndexOf('/'));
+  var filename = path.substring(startIndex);
+  if (filename.indexOf('\\') === 0 || filename.indexOf('/') === 0) {
+      filename = filename.substring(1);
   }
+  alert(filename);
   img.alt = filename;
 
 });
